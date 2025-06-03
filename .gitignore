@@ -2,3 +2,7 @@
 /Analysis/Datasets/Example/*.zip
 /Analysis/Datasets/Example/*/*/*.json
 /Analysis/Datasets/Raw_data/*
+
+*.html
+.idea
+__pycache__
