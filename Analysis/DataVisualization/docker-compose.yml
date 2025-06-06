@@ -1,0 +1,23 @@
+version: "3"
+services:
+  neo4j:
+    image: neo4j:5.19-community
+    container_name: neo4j
+    restart: always
+    environment:
+      - NEO4J_AUTH=neo4j/neo4j123123
+    ports:
+      - "7473:7473" # https
+      - "7474:7474" # http
+      - "7687:7687" # bolt
+      - "1337:1337" # shell
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:
