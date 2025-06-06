@@ -204,3 +204,276 @@ erDiagram
    reblog_or_favourite_or_acct ||--o{ field : has
    reblog_or_favourite_or_acct ||--o{ role : has
 ```
+
+## livefeeds.json Description
+
+- 字段结构说明 / Field Structure Overview
+
+这是一个表示 单条 Mastodon 动态（toot） 及其元信息的数据结构，主要包含发帖者、发布时间、互动数量、话题标签、卡片预览等字段。适用于内容分析、互动行为建模与跨平台传播分析。
+
+This is a structured object representing a single Mastodon post (toot), including metadata such as the poster’s account, content, interaction counts, tags, visibility, and preview cards.
+
+| 字段名 / Field Name         | 类型 / Type  | 中文说明                             | English Description                     |
+| ------------------------ | ---------- | -------------------------------- | --------------------------------------- |
+| `id`                     | 字符串 string | toot 的唯一标识（匿名化）                  | Unique ID of the toot (anonymized)      |
+| `created_at`             | 时间戳 string | 发布时间                             | Creation time                           |
+| `in_reply_to_id`         | 字符串或 null  | 回复目标 toot 的 ID                   | Replied-to toot ID                      |
+| `in_reply_to_account_id` | 字符串或 null  | 回复目标用户 ID                        | ID of the user being replied to         |
+| `sensitive`              | 布尔 boolean | 是否为敏感内容（如成人、暴力）                  | Is content marked as sensitive          |
+| `spoiler_text`           | 字符串 string | 内容警告或隐藏提示（通常为空）                  | Spoiler or content warning              |
+| `visibility`             | 字符串 string | 可见性设置（如 public/private/unlisted） | Post visibility setting                 |
+| `language`               | 字符串 string | 内容语言代码（如 en, de）                 | Language code                           |
+| `uri`                    | URL string | toot 的唯一 URI                     | Unique URI of the toot                  |
+| `url`                    | URL string | toot 的网页地址                       | Public web URL of the toot              |
+| `replies_count`          | 整数 int     | 回复数量                             | Number of replies                       |
+| `reblogs_count`          | 整数 int     | 被转发（boost）次数                     | Number of boosts                        |
+| `favourites_count`       | 整数 int     | 点赞数量                             | Number of favourites                    |
+| `edited_at`              | 时间戳或 null  | 是否被编辑过                           | Edited timestamp (if applicable)        |
+| `content`                | HTML 字符串   | toot 正文（含 HTML 标签）               | Main content of the toot (HTML)         |
+| `reblog`                 | 字典或 null   | 如果是转发，表示原 toot 对象                | If boost, contains original toot object |
+| `application`            | 字典 dict    | 发布此 toot 的应用信息                   | App that posted the toot                |
+| `account`                | 字典 dict    | 发布者账户信息                          | Poster’s account info                   |
+| `media_attachments`      | 列表 list    | 附带的图片/视频媒体                       | List of media attached                  |
+| `mentions`               | 列表 list    | 提及的用户（@user）                     | Mentioned users in the toot             |
+| `tags`                   | 列表 list    | Hashtags 信息                      | List of hashtags used                   |
+| `emojis`                 | 列表 list    | 自定义 emoji 表情                     | List of custom emojis                   |
+| `card`                   | 字典 dict    | 链接预览卡片（如博客/视频）                   | Preview card of shared URL              |
+| `poll`                   | 字典或 null   | 如果包含投票，投票结构体                     | Poll structure (if present)             |
+| `sid`                    | 字符串 string | toot 的全局唯一标识（instance#id）        | Global ID formed by `instance#id`       |
+
+- account 字段说明 / Poster Account (account)
+
+    字段结构与 boostersfavourites.json 中的 acct 完全一致。字段包括：
+
+    - id, username, acct: 用户身份标识
+
+    - display_name, note: 显示名与自我介绍
+
+    - followers_count, following_count, statuses_count: 用户活跃度与影响力指标
+
+    - created_at, last_status_at: 注册时间与最近发帖
+
+    - bot, discoverable, indexable: 账户类型与可发现性
+
+    - avatar, header, url: 资料图像与地址
+
+    - fields: 自定义资料字段，如主页、职业等
+
+```mermaid
+erDiagram
+
+    LIVEFEED {
+        string id
+        string sid
+        string created_at
+        string in_reply_to_id
+        string in_reply_to_account_id
+        bool sensitive
+        string spoiler_text
+        string visibility
+        string language
+        string uri
+        string url
+        int replies_count
+        int reblogs_count
+        int favourites_count
+        string edited_at
+        string content
+    }
+
+    LIVEFEED ||--|| ACCOUNT : has
+    LIVEFEED ||--|| APPLICATION : posted_by
+    LIVEFEED ||--o{ MEDIA_ATTACHMENT : includes
+    LIVEFEED ||--o{ MENTION : mentions
+    LIVEFEED ||--o{ TAG : contains
+    LIVEFEED ||--o{ EMOJI : uses
+    LIVEFEED ||--|| CARD : links_to
+    LIVEFEED ||--|| POLL : contains
+    LIVEFEED ||--|| REBLOG : is_a_boost_of
+
+    ACCOUNT {
+        string id
+        string username
+        string acct
+        string display_name
+        bool locked
+        bool bot
+        bool discoverable
+        bool indexable
+        bool group
+        string created_at
+        string note
+        string url
+        string uri
+        string avatar
+        string avatar_static
+        string header
+        string header_static
+        int followers_count
+        int following_count
+        int statuses_count
+        string last_status_at
+        bool hide_collections
+        bool noindex
+    }
+    ACCOUNT ||--o{ FIELD : has
+
+    APPLICATION {
+        string name
+        string website
+    }
+
+    MEDIA_ATTACHMENT {
+        string url
+        string type
+        string description
+    }
+
+    MENTION {
+        string username
+        string acct
+        string id
+        string url
+    }
+
+    TAG {
+        string name
+        string url
+    }
+
+    EMOJI {
+        string shortcode
+        string url
+        string static_url
+        bool visible_in_picker
+    }
+
+    CARD {
+        string url
+        string title
+        string description
+        string language
+        string type
+        string author_name
+        string provider_name
+        string image
+    }
+
+    POLL {
+        int votes_count
+        bool multiple
+        bool expired
+    }
+
+    REBLOG {
+        string id
+        string created_at
+        string content
+        string uri
+        string url
+        string language
+        string visibility
+        int replies_count
+        int reblogs_count
+        int favourites_count
+    }
+
+    FIELD {
+        string name
+        string value
+        string verified_at
+    }
+
+```
+
+## reply.json Description
+
+- 字段结构说明 / Field Structure
+
+该结构表示一条 Mastodon 平台上的回复关系，即某用户对一条原始动态进行了评论（reply）。结构包括该条回复内容的唯一标识符（sid）及评论者与被评论者的账户信息。
+
+This structure records a reply relation on the Mastodon platform — one user replied to another’s post. It includes the unique status ID (sid) and both the replying account (acct) and the account being replied to (reply_to_acct).
+
+| 字段名 / Field     | 类型 / Type  | 中文说明                        | English Description                       |
+| --------------- | ---------- | --------------------------- | ----------------------------------------- |
+| `sid`           | 字符串 string | 回复动态的唯一 ID（由实例名 + 状态 ID 拼接） | Unique ID of the reply toot (instance#id) |
+| `acct`          | 字典 dict    | 评论发起者（回复人）账户信息              | Account of the replying user              |
+| `reply_to_acct` | 字典 dict    | 被评论者账户信息                    | Account being replied to                  |
+
+- acct / reply_to_acct 字段说明（结构一致）
+
+这两个字段均为 Mastodon 用户对象，结构与 boostersfavourites.json 中一致
+
+```mermaid
+erDiagram
+
+    REPLY {
+        string sid
+    }
+
+    REPLY ||--|| ACCOUNT : "from"
+    REPLY ||--|| REPLIED_ACCOUNT : "to"
+
+    ACCOUNT {
+        string id
+        string username
+        string acct
+        string display_name
+        bool locked
+        bool bot
+        bool discoverable
+        bool indexable
+        bool group
+        string created_at
+        string note
+        string url
+        string uri
+        string avatar
+        string avatar_static
+        string header
+        string header_static
+        int followers_count
+        int following_count
+        int statuses_count
+        string last_status_at
+        bool hide_collections
+        bool noindex
+    }
+
+    ACCOUNT ||--o{ FIELD : has
+
+    REPLIED_ACCOUNT {
+        string id
+        string username
+        string acct
+        string display_name
+        bool locked
+        bool bot
+        bool discoverable
+        bool indexable
+        bool group
+        string created_at
+        string note
+        string url
+        string uri
+        string avatar
+        string avatar_static
+        string header
+        string header_static
+        int followers_count
+        int following_count
+        int statuses_count
+        string last_status_at
+        bool hide_collections
+        bool noindex
+    }
+
+    REPLIED_ACCOUNT ||--o{ FIELD : has
+
+    FIELD {
+        string name
+        string value
+        string verified_at
+    }
+
+```
