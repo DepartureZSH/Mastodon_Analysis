@@ -1,7 +1,5 @@
 from collections import defaultdict
 import networkx as nx
-# import re
-
 
 def calculate_metrics(graph, name="Graph"):
     metrics = {}
@@ -27,23 +25,9 @@ def calculate_metrics(graph, name="Graph"):
         print(f"  {metric}: {value}")
     return metrics
 
-
-
-
-
-
 def group_nodes_by_instance(graph: nx.Graph):
     instance_subgraphs = defaultdict(list)
     for node, data in graph.nodes(data=True):
-    #     if data:  # data 不为空
-    #         url = data.get('url', '')
-    #         if url:
-    #             instance = extract_instance_from_url(url)
-    #         else:
-    #             # 如果 url 没有，fallback 用 node 本身（node 是 URL 字符串）
-    #             instance = extract_instance_from_url(node)
-    #     else:  # data 是空 dict
-    #         instance = extract_instance_from_url(node)
         instance = data.get('instance', "unknown")
         instance_subgraphs[instance].append(node)
     
@@ -68,7 +52,7 @@ def analyze_grouped_subgraphs(graph, group_type='instance'):
     elif group_type == 'interaction':
         groups = group_edges_by_type(graph)
     else:
-        raise ValueError("Invalid group type. Must be 'instance' or 'edge_type'.")
+        raise ValueError("Invalid group type. Must be 'instance' or 'interaction'.")
     
     group_metrics = dict()
     for group, subgraph in groups.items():

@@ -47,7 +47,10 @@ def load_boosters_favorites_to_network(json_files, G:nx.DiGraph=None):
                 if not post_author_url:
                     continue
                 data = entry.get("acct", {})
-                data.update({"instance": extract_instance_from_url(post_author_url)})
+                instance = extract_instance_from_url(post_author_url)
+                if instance == "unknown":
+                    print(post_author_url)
+                data.update({"instance": instance})
                 # Add the post author as a node
                 G.add_node(post_author_url, **data)
 
@@ -55,19 +58,21 @@ def load_boosters_favorites_to_network(json_files, G:nx.DiGraph=None):
                 for booster in entry.get("reblogs", []):
                     if isinstance(booster, dict):  # Ensure booster is a dictionary
                         booster_url = booster.get("url")
-                        # extra_values = {"instance": extract_instance_from_url(booster_url)}
+                        extra_values = {"instance": extract_instance_from_url(booster_url)}
                         if booster_url:
                             # G.add_node(booster_url, **booster)
-                            # G.add_node(booster_url, **extra_values)
-                            G.add_node(booster_url)
+                            G.add_node(booster_url, **extra_values)
+                            # G.add_node(booster_url)
                             G.add_edge(booster_url, post_author_url, interaction="boost")  # Add boost edge
 
                 # Process favourites
                 for favoriter in entry.get("favourites", []):
                     if isinstance(favoriter, dict):  # Ensure favoriter is a dictionary
                         favoriter_url = favoriter.get("url")
+                        extra_values = {"instance": extract_instance_from_url(favoriter_url)}
                         if favoriter_url:
-                            G.add_node(favoriter_url)
+                            G.add_node(favoriter_url, **extra_values)
+                            # G.add_node(favoriter_url)
                             G.add_edge(favoriter_url, post_author_url, interaction="favorite")  # Add favorite edge
     return G
 
